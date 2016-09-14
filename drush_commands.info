@@ -1,0 +1,3 @@
+name = Drush Commands
+description = Useful Drush Commands. Requires Drush Core.
+package = Development
