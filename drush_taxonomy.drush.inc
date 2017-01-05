@@ -4,6 +4,8 @@
  * Drush commands related to taxonomy.
  */
 
+include 'common_functions.inc.php';
+
 /**
 * Implements hook_drush_command().
 */
@@ -42,12 +44,12 @@ function drush_drush_taxonomy_vocabulary_clean() {
     $vocabulary_existent = array_diff($names, $vocabulary_non_existent);
     
     if(count($vocabulary_existent) == 0) {
-      drush_set_error('DRUSH_VOCABULARY_CLEAN_ERROR', dt("The desired vocabularies to clean doesn't exists."));
+      drush_set_error('DRUSH_VOCABULARY_CLEAN_ERROR', drush_plural(count($vocabulary_non_existent), "The desired vocabulary to clean doesn't exists.", "The desired vocabularies to clean doesn't exists."));
       return;
     }
 
     if(count($vocabulary_non_existent)) {
-      drush_print(dt("Non-existent vocabularies:"));
+      drush_print(drush_plural(count($vocabulary_non_existent), 'Non-existent vocabulary:', 'Non-existent vocabularies:'));
       drush_print(implode(' ', $vocabulary_non_existent));
     }
     
@@ -58,10 +60,10 @@ function drush_drush_taxonomy_vocabulary_clean() {
       }
     }
 
-    drush_print(dt("Vocabularies cleaned:"));
+    drush_print(drush_plural(count($vocabulary_existent), 'Vocabulary cleaned:', 'Vocabularies cleaned:'));
     drush_print(implode(' ', $vocabulary_existent));
   }
   else {
-    drush_set_error('DRUSH_VOCABULARY_CLEAN_ERROR', dt("You must enter at least one vocabulary name."));
+    drush_set_error('DRUSH_VOCABULARY_CLEAN_ERROR', dt('You must enter at least one vocabulary name.'));
   }
 }
