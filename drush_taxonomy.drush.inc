@@ -22,11 +22,19 @@ function drush_taxonomy_drush_command() {
 
     ),
   );
+  $items['delete-unused-taxonomy-terms'] = array(
+    'description' => dt("Delete all the unused taxonomy terms."),
+    'aliases' => array('dutt'),
+    'examples' => array(
+      'drush delete-unused-taxonomy-terms' => dt('Delete all the terms in tags vocabulary'),
+    ),
+  );
+
   return $items;
 }
 
 /**
- * Callback for the vocabulary clean command.
+ * Callback for the vocabulary-clean command.
  */
 function drush_drush_taxonomy_vocabulary_clean() {
   $names = func_get_args();
@@ -65,5 +73,32 @@ function drush_drush_taxonomy_vocabulary_clean() {
   }
   else {
     drush_set_error('DRUSH_VOCABULARY_CLEAN_ERROR', dt('You must enter at least one vocabulary name.'));
+  }
+}
+
+/**
+ * Callback for the delete-unused-taxonomy-terms command.
+ */
+function drush_drush_taxonomy_delete_unused_taxonomy_terms() {
+  $query = "
+  SELECT taxonomy_term_data.tid AS tid
+  FROM 
+  {taxonomy_term_data} taxonomy_term_data
+  LEFT JOIN {taxonomy_index} taxonomy_index ON taxonomy_term_data.tid = taxonomy_index.tid
+  LEFT JOIN {node} node_taxonomy_index ON taxonomy_index.nid = node_taxonomy_index.nid
+  LEFT JOIN {taxonomy_vocabulary} taxonomy_vocabulary ON taxonomy_term_data.vid = taxonomy_vocabulary.vid
+  GROUP BY tid
+  HAVING COUNT(DISTINCT node_taxonomy_index.nid) = '0'";
+
+  $tids = db_query($query)->fetchCol();
+  $cant_tids = count($tids);
+  if($cant_tids > 0) {
+    foreach ($tids as $tid) {
+      taxonomy_term_delete($tid);
+    }
+    drush_print(drush_plural($cant_tids, '@count term cleaned', '@count terms cleaned', array('@count' => $cant_tids))); 
+  }
+  else {
+    drush_print(dt('There is not unused taxonomy terms'));
   }
 }
